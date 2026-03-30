@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pac-Man</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Press Start 2P', 'Courier New', monospace;
+            overflow: hidden;
+        }
+
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 560px;
+            padding: 10px 20px;
+            color: #fff;
+            font-size: 16px;
+        }
+
+        .score-display, .lives-display {
+            text-shadow: 0 0 10px currentColor;
+        }
+
+        .score-display {
+            color: #ffff00;
+        }
+
+        .lives-display {
+            color: #ff0000;
+        }
+
+        #gameCanvas {
+            border: 4px solid #2121de;
+            border-radius: 5px;
+            box-shadow: 0 0 20px #2121de, inset 0 0 20px rgba(33, 33, 222, 0.3);
+            background: #000;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            color: #fff;
+            text-align: center;
+        }
+
+        .overlay.hidden {
+            display: none;
+        }
+
+        .overlay h1 {
+            font-size: 48px;
+            margin-bottom: 20px;
+            text-shadow: 0 0 20px currentColor;
+        }
+
+        .overlay.game-over h1 {
+            color: #ff0000;
+        }
+
+        .overlay.win h1 {
+            color: #00ff00;
+        }
+
+        .overlay p {
+            font-size: 24px;
+            margin-bottom: 30px;
+        }
+
+        .overlay button {
+            padding: 15px 40px;
+            font-size: 18px;
+            font-family: inherit;
+            background: transparent;
+            color: #ffff00;
+            border: 3px solid #ffff00;
+            border-radius: 5px;
+            cursor: pointer;
+            text-shadow: 0 0 10px #ffff00;
+            box-shadow: 0 0 10px #ffff00;
+            transition: all 0.3s;
+        }
+
+        .overlay button:hover {
+            background: #ffff00;
+            color: #000;
+        }
+
+        .start-screen h1 {
+            color: #ffff00;
+        }
+
+        .start-screen p {
+            font-size: 14px;
+            margin-bottom: 10px;
+            color: #aaa;
+        }
+
+        .controls-hint {
+            margin-top: 20px;
+            font-size: 12px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="header">
+            <div class="score-display">SCORE: <span id="score">0</span></div>
+            <div class="lives-display">LIVES: <span id="lives">3</span></div>
+        </div>
+        <canvas id="gameCanvas"></canvas>
+    </div>
+
+    <div class="overlay start-screen" id="startScreen">
+        <h1>PAC-MAN</h1>
+        <p>Eat all dots to win!</p>
+        <p>Avoid the ghosts!</p>
+        <button id="startBtn">START GAME</button>
+        <div class="controls-hint">Use Arrow Keys to Move</div>
+    </div>
+
+    <div class="overlay game-over hidden" id="gameOverScreen">
+        <h1>GAME OVER</h1>
+        <p>Final Score: <span id="finalScore">0</span></p>
+        <button id="restartBtn">PLAY AGAIN</button>
+    </div>
+
+    <div class="overlay win hidden" id="winScreen">
+        <h1>VICTORY!</h1>
+        <p>Final Score: <span id="winScore">0</span></p>
+        <button id="winRestartBtn">PLAY AGAIN</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        const TILE_SIZE = 20;
+        const MAZE_WIDTH = 28;
+        const MAZE_HEIGHT = 31;
+
+        canvas.width = MAZE_WIDTH * TILE_SIZE;
+        canvas.height = MAZE_HEIGHT * TILE_SIZE;
+
+        const scoreEl = document.getElementById('score');
+        const livesEl = document.getElementById('lives');
+        const startScreen = document.getElementById('startScreen');
+        const gameOverScreen = document.getElementById('gameOverScreen');
+        const winScreen = document.getElementById('winScreen');
+        const finalScoreEl = document.getElementById('finalScore');
+        const winScoreEl = document.getElementById('winScore');
+
+        const startBtn = document.getElementById('startBtn');
+        const restartBtn = document.getElementById('restartBtn');
+        const winRestartBtn = document.getElementById('winRestartBtn');
+
+        let score = 0;
+        let lives = 3;
+        let gameRunning = false;
+        let gameWon = false;
+        let dotsRemaining = 0;
+
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSound(type) {
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            switch (type) {
+                case 'eat':
+                    oscillator.frequency.setValueAtTime(400, audioCtx.currentTime);
+                    oscillator.frequency.exponentialRampToValueAtTime(600, audioCtx.currentTime + 0.05);
+                    gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
+                    oscillator.start(audioCtx.currentTime);
+                    oscillator.stop(audioCtx.currentTime + 0.05);
+                    break;
+                case 'power':
+                    oscillator.frequency.setValueAtTime(200, audioCtx.currentTime);
+                    oscillator.frequency.exponentialRampToValueAtTime(400, audioCtx.currentTime + 0.1);
+                    oscillator.frequency.exponentialRampToValueAtTime(200, audioCtx.currentTime + 0.2);
+                    oscillator.frequency.exponentialRampToValueAtTime(400, audioCtx.currentTime + 0.3);
+                    gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                    oscillator.start(audioCtx.currentTime);
+                    oscillator.stop(audioCtx.currentTime + 0.3);
+                    break;
+                case 'ghost':
+                    oscillator.type = 'square';
+                    oscillator.frequency.setValueAtTime(800, audioCtx.currentTime);
+                    oscillator.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
+                    gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+                    oscillator.start(audioCtx.currentTime);
+                    oscillator.stop(audioCtx.currentTime + 0.15);
+                    break;
+                case 'death':
+                    oscillator.type = 'sawtooth';
+                    oscillator.frequency.setValueAtTime(500, audioCtx.currentTime);
+                    for (let i = 0; i < 10; i++) {
+                        oscillator.frequency.setValueAtTime(500 - i * 40, audioCtx.currentTime + i * 0.1);
+                    }
+                    gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 1);
+                    oscillator.start(audioCtx.currentTime);
+                    oscillator.stop(audioCtx.currentTime + 1);
+                    break;
+            }
+        }
+
+        const originalMaze = [
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+            [1,2,2,2,2,2,2,2,2,2,2,2,2,1,1,2,2,2,2,2,2,2,2,2,2,2,2,1],
+            [1,2,1,1,1,1,2,1,1,1,1,1,2,1,1,2,1,1,1,1,1,2,1,1,1,1,2,1],
+            [1,3,1,1,1,1,2,1,1,1,1,1,2,1,1,2,1,1,1,1,1,2,1,1,1,1,3,1],
+            [1,2,1,1,1,1,2,1,1,1,1,1,2,1,1,2,1,1,1,1,1,2,1,1,1,1,2,1],
+            [1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1],
+            [1,2,1,1,1,1,2,1,1,2,1,1,1,1,1,1,1,1,2,1,1,2,1,1,1,1,2,1],
+            [1,2,1,1,1,1,2,1,1,2,1,1,1,1,1,1,1,1,2,1,1,2,1,1,1,1,2,1],
+            [1,2,2,2,2,2,2,1,1,2,2,2,2,1,1,2,2,2,2,1,1,2,2,2,2,2,2,1],
+            [1,1,1,1,1,1,2,1,1,1,1,1,0,1,1,0,1,1,1,1,1,2,1,1,1,1,1,1],
+            [1,1,1,1,1,1,2,1,1,1,1,1,0,1,1,0,1,1,1,1,1,2,1,1,1,1,1,1],
+            [1,1,1,1,1,1,2,1,1,0,0,0,0,0,0,0,0,0,0,1,1,2,1,1,1,1,1,1],
+            [1,1,1,1,1,1,2,1,1,0,1,1,1,0,0,1,1,1,0,1,1,2,1,1,1,1,1,1],
+            [1,1,1,1,1,1,2,1,1,0,1,0,0,0,0,0,0,1,0,1,1,2,1,1,1,1,1,1],
+            [0,0,0,0,0,0,2,0,0,0,1,0,0,0,0,0,0,1,0,0,0,2,0,0,0,0,0,0],
+            [1,1,1,1,1,1,2,1,1,0,1,0,0,0,0,0,0,1,0,1,1,2,1,1,1,1,1,1],
+            [1,1,1,1,1,1,2,1,1,0,1,1,1,1,1,1,1,1,0,1,1,2,1,1,1,1,1,1],
+            [1,1,1,1,1,1,2,1,1,0,0,0,0,0,0,0,0,0,0,1,1,2,1,1,1,1,1,1],
+            [1,1,1,1,1,1,2,1,1,0,1,1,1,1,1,1,1,1,0,1,1,2,1,1,1,1,1,1],
+            [1,1,1,1,1,1,2,1,1,0,1,1,1,1,1,1,1,1,0,1,1,2,1,1,1,1,1,1],
+            [1,2,2,2,2,2,2,2,2,2,2,2,2,1,1,2,2,2,2,2,2,2,2,2,2,2,2,1],
+            [1,2,1,1,1,1,2,1,1,1,1,1,2,1,1,2,1,1,1,1,1,2,1,1,1,1,2,1],
+            [1,2,1,1,1,1,2,1,1,1,1,1,2,1,1,2,1,1,1,1,1,2,1,1,1,1,2,1],
+            [1,3,2,2,1,1,2,2,2,2,2,2,2,0,0,2,2,2,2,2,2,2,1,1,2,2,3,1],
+            [1,1,1,2,1,1,2,1,1,2,1,1,1,1,1,1,1,1,2,1,1,2,1,1,2,1,1,1],
+            [1,1,1,2,1,1,2,1,1,2,1,1,1,1,1,1,1,1,2,1,1,2,1,1,2,1,1,1],
+            [1,2,2,2,2,2,2,1,1,2,2,2,2,1,1,2,2,2,2,1,1,2,2,2,2,2,2,1],
+            [1,2,1,1,1,1,1,1,1,1,1,1,2,1,1,2,1,1,1,1,1,1,1,1,1,1,2,1],
+            [1,2,1,1,1,1,1,1,1,1,1,1,2,1,1,2,1,1,1,1,1,1,1,1,1,1,2,1],
+            [1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1],
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+        ];
+
+        let maze = [];
+
+        const DIRECTIONS = {
+            UP: { x: 0, y: -1 },
+            DOWN: { x: 0, y: 1 },
+            LEFT: { x: -1, y: 0 },
+            RIGHT: { x: 1, y: 0 },
+            NONE: { x: 0, y: 0 }
+        };
+
+        class PacMan {
+            constructor() {
+                this.reset();
+            }
+
+            reset() {
+                this.x = 14 * TILE_SIZE;
+                this.y = 23 * TILE_SIZE + TILE_SIZE / 2;
+                this.direction = DIRECTIONS.NONE;
+                this.nextDirection = DIRECTIONS.NONE;
+                this.speed = 2;
+                this.radius = TILE_SIZE * 0.4;
+                this.mouthAngle = 0;
+                this.mouthSpeed = 0.2;
+                this.mouthOpen = true;
+            }
+
+            update() {
+                const gridX = Math.floor((this.x + TILE_SIZE / 2) / TILE_SIZE);
+                const gridY = Math.floor((this.y + TILE_SIZE / 2) / TILE_SIZE);
+
+                const centerX = gridX * TILE_SIZE + TILE_SIZE / 2;
+                const centerY = gridY * TILE_SIZE + TILE_SIZE / 2;
+
+                const distToCenter = Math.sqrt(
+                    Math.pow(this.x + TILE_SIZE / 2 - centerX, 2) +
+                    Math.pow(this.y + TILE_SIZE / 2 - centerY, 2)
+                );
+
+                if (distToCenter < this.speed) {
+                    if (this.nextDirection !== DIRECTIONS.NONE) {
+                        const nextX = gridX + this.nextDirection.x;
+                        const nextY = gridY + this.nextDirection.y;
+
+                        if (nextX < 0) {
+                            this.x = (MAZE_WIDTH - 1) * TILE_SIZE;
+                            this.direction = this.nextDirection;
+                            this.nextDirection = DIRECTIONS.NONE;
+                            return;
+                        }
+                        if (nextX >= MAZE_WIDTH) {
+                            this.x = 0;
+                            this.direction = this.nextDirection;
+                            this.nextDirection = DIRECTIONS.NONE;
+                            return;
+                        }
+
+                        if (!isWall(nextX, nextY)) {
+                            this.x = centerX - TILE_SIZE / 2;
+                            this.y = centerY - TILE_SIZE / 2;
+                            this.direction = this.nextDirection;
+                            this.nextDirection = DIRECTIONS.NONE;
+                        }
+                    }
+
+                    if (this.direction !== DIRECTIONS.NONE) {
+                        const nextX = gridX + this.direction.x;
+                        const nextY = gridY + this.direction.y;
+
+                        if (nextX < 0 || nextX >= MAZE_WIDTH) {
+                            if (nextX < 0) this.x = (MAZE_WIDTH - 1) * TILE_SIZE;
+                            else this.x = 0;
+                            return;
+                        }
+
+                        if (isWall(nextX, nextY)) {
+                            this.direction = DIRECTIONS.NONE;
+                        }
+                    }
+                }
+
+                this.x += this.direction.x * this.speed;
+                this.y += this.direction.y * this.speed;
+
+                if (this.x < -TILE_SIZE) this.x = canvas.width;
+                if (this.x > canvas.width) this.x = -TILE_SIZE;
+
+                if (this.direction !== DIRECTIONS.NONE) {
+                    if (this.mouthOpen) {
+                        this.mouthAngle += this.mouthSpeed;
+                        if (this.mouthAngle >= 0.25) this.mouthOpen = false;
+                    } else {
+                        this.mouthAngle -= this.mouthSpeed;
+                        if (this.mouthAngle <= 0) this.mouthOpen = true;
+                    }
+                }
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x + TILE_SIZE / 2, this.y + TILE_SIZE / 2);
+
+                let rotation = 0;
+                if (this.direction === DIRECTIONS.RIGHT) rotation = 0;
+                else if (this.direction === DIRECTIONS.DOWN) rotation = Math.PI / 2;
+                else if (this.direction === DIRECTIONS.LEFT) rotation = Math.PI;
+                else if (this.direction === DIRECTIONS.UP) rotation = -Math.PI / 2;
+
+                ctx.rotate(rotation);
+
+                ctx.fillStyle = '#ffff00';
+                ctx.beginPath();
+                ctx.arc(0, 0, this.radius, this.mouthAngle * Math.PI, (2 - this.mouthAngle) * Math.PI);
+                ctx.lineTo(0, 0);
+                ctx.closePath();
+                ctx.fill();
+
+                ctx.restore();
+            }
+
+            getGridPosition() {
+                return {
+                    x: Math.floor((this.x + TILE_SIZE / 2) / TILE_SIZE),
+                    y: Math.floor((this.y + TILE_SIZE / 2) / TILE_SIZE)
+                };
+            }
+        }
+
+        class Ghost {
+            constructor(color, startX, startY, behavior) {
+                this.color = color;
+                this.startX = startX;
+                this.startY = startY;
+                this.behavior = behavior;
+                this.reset();
+            }
+
+            reset() {
+                this.x = this.startX * TILE_SIZE;
+                this.y = this.startY * TILE_SIZE + TILE_SIZE / 2;
+                this.direction = DIRECTIONS.UP;
+                this.speed = 1.5;
+                this.radius = TILE_SIZE * 0.4;
+                this.vulnerable = false;
+                this.vulnerableTime = 0;
+                this.eaten = false;
+                this.inBox = true;
+                this.boxTimer = 0;
+            }
+
+            update(pacman) {
+                if (this.inBox) {
+                    this.boxTimer++;
+                    if (this.boxTimer > 60) {
+                        this.inBox = false;
+                        this.y = 11 * TILE_SIZE + TILE_SIZE / 2;
+                        this.direction = DIRECTIONS.UP;
+                    }
+                    return;
+                }
+
+                if (this.eaten) {
+                    this.speed = 4;
+                    const targetX = 14 * TILE_SIZE;
+                    const targetY = 14 * TILE_SIZE;
+
+                    if (Math.abs(this.x - targetX) < 5 && Math.abs(this.y - targetY) < 5) {
+                        this.eaten = false;
+                        this.vulnerable = false;
+                        this.speed = 1.5;
+                        this.inBox = true;
+                        this.boxTimer = 0;
+                    } else {
+                        this.moveTowards(targetX, targetY);
+                    }
+                    return;
+                }
+
+                if (this.vulnerable) {
+                    this.vulnerableTime--;
+                    if (this.vulnerableTime <= 0) {
+                        this.vulnerable = false;
+                    }
+                    this.speed = 1;
+                } else {
+                    this.speed = 1.5;
+                }
+
+                const gridX = Math.floor((this.x + TILE_SIZE / 2) / TILE_SIZE);
+                const gridY = Math.floor((this.y + TILE_SIZE / 2) / TILE_SIZE);
+
+                const centerX = gridX * TILE_SIZE + TILE_SIZE / 2;
+                const centerY = gridY * TILE_SIZE + TILE_SIZE / 2;
+
+                const distToCenter = Math.sqrt(
+                    Math.pow(this.x + TILE_SIZE / 2 - centerX, 2) +
+                    Math.pow(this.y + TILE_SIZE / 2 - centerY, 2)
+                );
+
+                if (distToCenter < this.speed) {
+                    let targetX, targetY;
+
+                    if (this.vulnerable) {
+                        targetX = Math.random() * MAZE_WIDTH * TILE_SIZE;
+                        targetY = Math.random() * MAZE_HEIGHT * TILE_SIZE;
+                    } else {
+                        switch (this.behavior) {
+                            case 'chase':
+                                targetX = pacman.x;
+                                targetY = pacman.y;
+                                break;
+                            case 'ambush':
+                                targetX = pacman.x + pacman.direction.x * 4 * TILE_SIZE;
+                                targetY = pacman.y + pacman.direction.y * 4 * TILE_SIZE;
+                                break;
+                            case 'random':
+                                if (Math.random() < 0.3) {
+                                    targetX = Math.random() * MAZE_WIDTH * TILE_SIZE;
+                                    targetY = Math.random() * MAZE_HEIGHT * TILE_SIZE;
+                                } else {
+                                    targetX = pacman.x;
+                                    targetY = pacman.y;
+                                }
+                                break;
+                            case 'patrol':
+                                const corners = [
+                                    { x: 1, y: 1 },
+                                    { x: MAZE_WIDTH - 2, y: 1 },
+                                    { x: 1, y: MAZE_HEIGHT - 2 },
+                                    { x: MAZE_WIDTH - 2, y: MAZE_HEIGHT - 2 }
+                                ];
+                                const time = Date.now() / 10000;
+                                const cornerIndex = Math.floor(time) % 4;
+                                targetX = corners[cornerIndex].x * TILE_SIZE;
+                                targetY = corners[cornerIndex].y * TILE_SIZE;
+                                break;
+                        }
+                    }
+
+                    this.moveTowards(targetX, targetY);
+                }
+
+                this.x += this.direction.x * this.speed;
+                this.y += this.direction.y * this.speed;
+
+                if (this.x < -TILE_SIZE) this.x = canvas.width;
+                if (this.x > canvas.width) this.x = -TILE_SIZE;
+            }
+
+            moveTowards(targetX, targetY) {
+                const gridX = Math.floor((this.x + TILE_SIZE / 2) / TILE_SIZE);
+                const gridY = Math.floor((this.y + TILE_SIZE / 2) / TILE_SIZE);
+
+                const possibleDirections = [];
+
+                const dirs = [DIRECTIONS.UP, DIRECTIONS.DOWN, DIRECTIONS.LEFT, DIRECTIONS.RIGHT];
+                for (const dir of dirs) {
+                    if (dir.x === -this.direction.x && dir.y === -this.direction.y) continue;
+
+                    const nextX = gridX + dir.x;
+                    const nextY = gridY + dir.y;
+
+                    if (nextX >= 0 && nextX < MAZE_WIDTH && nextY >= 0 && nextY < MAZE_HEIGHT) {
+                        if (!isWall(nextX, nextY)) {
+                            possibleDirections.push(dir);
+                        }
+                    }
+                }
+
+                if (possibleDirections.length === 0) {
+                    const reverseDir = { x: -this.direction.x, y: -this.direction.y };
+                    possibleDirections.push(reverseDir);
+                }
+
+                let bestDir = possibleDirections[0];
+                let bestDist = Infinity;
+
+                for (const dir of possibleDirections) {
+                    const nextX = (gridX + dir.x) * TILE_SIZE + TILE_SIZE / 2;
+                    const nextY = (gridY + dir.y) * TILE_SIZE + TILE_SIZE / 2;
+                    const dist = Math.sqrt(Math.pow(nextX - targetX, 2) + Math.pow(nextY - targetY, 2));
+
+                    if (dist < bestDist) {
+                        bestDist = dist;
+                        bestDir = dir;
+                    }
+                }
+
+                this.x = gridX * TILE_SIZE + TILE_SIZE / 2 - TILE_SIZE / 2;
+                this.y = gridY * TILE_SIZE + TILE_SIZE / 2 - TILE_SIZE / 2;
+                this.direction = bestDir;
+            }
+
+            draw() {
+                const x = this.x + TILE_SIZE / 2;
+                const y = this.y + TILE_SIZE / 2;
+
+                let color = this.color;
+                if (this.vulnerable) {
+                    if (this.vulnerableTime < 120 && Math.floor(this.vulnerableTime / 10) % 2 === 0) {
+                        color = '#ffffff';
+                    } else {
+                        color = '#2121de';
+                    }
+                }
+                if (this.eaten) {
+                    ctx.fillStyle = 'transparent';
+                } else {
+                    ctx.fillStyle = color;
+                }
+
+                ctx.beginPath();
+                ctx.arc(x, y - 2, this.radius, Math.PI, 0);
+                ctx.lineTo(x + this.radius, y + this.radius);
+                ctx.lineTo(x + this.radius * 0.33, y + this.radius * 0.5);
+                ctx.lineTo(x, y + this.radius);
+                ctx.lineTo(x - this.radius * 0.33, y + this.radius * 0.5);
+                ctx.lineTo(x - this.radius, y + this.radius);
+                ctx.closePath();
+                ctx.fill();
+
+                if (!this.vulnerable && !this.eaten) {
+                    ctx.fillStyle = '#ffffff';
+                    ctx.beginPath();
+                    ctx.arc(x - 4, y - 4, 4, 0, Math.PI * 2);
+                    ctx.arc(x + 4, y - 4, 4, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    ctx.fillStyle = '#2121de';
+                    const eyeOffsetX = this.direction.x * 2;
+                    const eyeOffsetY = this.direction.y * 2;
+                    ctx.beginPath();
+                    ctx.arc(x - 4 + eyeOffsetX, y - 4 + eyeOffsetY, 2, 0, Math.PI * 2);
+                    ctx.arc(x + 4 + eyeOffsetX, y - 4 + eyeOffsetY, 2, 0, Math.PI * 2);
+                    ctx.fill();
+                } else if (this.vulnerable && !this.eaten) {
+                    ctx.fillStyle = '#ffb8ff';
+                    ctx.beginPath();
+                    ctx.arc(x - 4, y - 2, 2, 0, Math.PI * 2);
+                    ctx.arc(x + 4, y - 2, 2, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    ctx.strokeStyle = '#ffb8ff';
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.moveTo(x - 6, y + 4);
+                    ctx.lineTo(x - 3, y + 2);
+                    ctx.lineTo(x, y + 4);
+                    ctx.lineTo(x + 3, y + 2);
+                    ctx.lineTo(x + 6, y + 4);
+                    ctx.stroke();
+                }
+            }
+
+            getGridPosition() {
+                return {
+                    x: Math.floor((this.x + TILE_SIZE / 2) / TILE_SIZE),
+                    y: Math.floor((this.y + TILE_SIZE / 2) / TILE_SIZE)
+                };
+            }
+        }
+
+        function isWall(x, y) {
+            if (x < 0 || x >= MAZE_WIDTH || y < 0 || y >= MAZE_HEIGHT) return false;
+            return maze[y][x] === 1;
+        }
+
+        let pacman;
+        let ghosts = [];
+
+        function initGame() {
+            maze = originalMaze.map(row => [...row]);
+            dotsRemaining = 0;
+            for (let y = 0; y < MAZE_HEIGHT; y++) {
+                for (let x = 0; x < MAZE_WIDTH; x++) {
+                    if (maze[y][x] === 2 || maze[y][x] === 3) {
+                        dotsRemaining++;
+                    }
+                }
+            }
+
+            pacman = new PacMan();
+
+            ghosts = [
+                new Ghost('#ff0000', 14, 11, 'chase'),
+                new Ghost('#ffb8ff', 12, 14, 'ambush'),
+                new Ghost('#00ffff', 14, 14, 'random'),
+                new Ghost('#ffb852', 16, 14, 'patrol')
+            ];
+        }
+
+        function drawMaze() {
+            for (let y = 0; y < MAZE_HEIGHT; y++) {
+                for (let x = 0; x < MAZE_WIDTH; x++) {
+                    const cell = maze[y][x];
+                    const px = x * TILE_SIZE;
+                    const py = y * TILE_SIZE;
+
+                    if (cell === 1) {
+                        ctx.fillStyle = '#2121de';
+                        ctx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
+
+                        ctx.fillStyle = '#000';
+                        const inset = 2;
+                        ctx.fillRect(px + inset, py + inset, TILE_SIZE - inset * 2, TILE_SIZE - inset * 2);
+                    } else if (cell === 2) {
+                        ctx.fillStyle = '#ffb897';
+                        ctx.beginPath();
+                        ctx.arc(px + TILE_SIZE / 2, py + TILE_SIZE / 2, 2, 0, Math.PI * 2);
+                        ctx.fill();
+                    } else if (cell === 3) {
+                        ctx.fillStyle = '#ffb897';
+                        ctx.beginPath();
+                        ctx.arc(px + TILE_SIZE / 2, py + TILE_SIZE / 2, 6, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                }
+            }
+        }
+
+        function checkCollisions() {
+            const pacGrid = pacman.getGridPosition();
+
+            if (pacGrid.x >= 0 && pacGrid.x < MAZE_WIDTH && pacGrid.y >= 0 && pacGrid.y < MAZE_HEIGHT) {
+                const cell = maze[pacGrid.y][pacGrid.x];
+
+                if (cell === 2) {
+                    maze[pacGrid.y][pacGrid.x] = 0;
+                    score += 10;
+                    dotsRemaining--;
+                    playSound('eat');
+                    scoreEl.textContent = score;
+
+                    if (dotsRemaining === 0) {
+                        gameWon = true;
+                        gameRunning = false;
+                        winScoreEl.textContent = score;
+                        winScreen.classList.remove('hidden');
+                    }
+                } else if (cell === 3) {
+                    maze[pacGrid.y][pacGrid.x] = 0;
+                    score += 50;
+                    dotsRemaining--;
+                    playSound('power');
+                    scoreEl.textContent = score;
+
+                    ghosts.forEach(ghost => {
+                        if (!ghost.eaten && !ghost.inBox) {
+                            ghost.vulnerable = true;
+                            ghost.vulnerableTime = 600;
+                        }
+                    });
+
+                    if (dotsRemaining === 0) {
+                        gameWon = true;
+                        gameRunning = false;
+                        winScoreEl.textContent = score;
+                        winScreen.classList.remove('hidden');
+                    }
+                }
+            }
+
+            for (const ghost of ghosts) {
+                const ghostGrid = ghost.getGridPosition();
+                const dist = Math.sqrt(
+                    Math.pow(pacman.x - ghost.x, 2) +
+                    Math.pow(pacman.y - ghost.y, 2)
+                );
+
+                if (dist < TILE_SIZE * 0.8) {
+                    if (ghost.vulnerable && !ghost.eaten) {
+                        ghost.eaten = true;
+                        ghost.vulnerable = false;
+                        score += 200;
+                        playSound('ghost');
+                        scoreEl.textContent = score;
+                    } else if (!ghost.eaten && !ghost.inBox) {
+                        handleDeath();
+                    }
+                }
+            }
+        }
+
+        function handleDeath() {
+            lives--;
+            livesEl.textContent = lives;
+            playSound('death');
+
+            if (lives <= 0) {
+                gameRunning = false;
+                finalScoreEl.textContent = score;
+                gameOverScreen.classList.remove('hidden');
+            } else {
+                pacman.reset();
+                ghosts.forEach(ghost => ghost.reset());
+            }
+        }
+
+        function gameLoop() {
+            if (!gameRunning) return;
+
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            drawMaze();
+
+            pacman.update();
+            pacman.draw();
+
+            ghosts.forEach(ghost => {
+                ghost.update(pacman);
+                ghost.draw();
+            });
+
+            checkCollisions();
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        function startGame() {
+            audioCtx.resume();
+            score = 0;
+            lives = 3;
+            gameWon = false;
+            scoreEl.textContent = score;
+            livesEl.textContent = lives;
+
+            startScreen.classList.add('hidden');
+            gameOverScreen.classList.add('hidden');
+            winScreen.classList.add('hidden');
+
+            initGame();
+            gameRunning = true;
+            gameLoop();
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (!gameRunning) return;
+
+            switch (e.key) {
+                case 'ArrowUp':
+                    pacman.nextDirection = DIRECTIONS.UP;
+                    e.preventDefault();
+                    break;
+                case 'ArrowDown':
+                    pacman.nextDirection = DIRECTIONS.DOWN;
+                    e.preventDefault();
+                    break;
+                case 'ArrowLeft':
+                    pacman.nextDirection = DIRECTIONS.LEFT;
+                    e.preventDefault();
+                    break;
+                case 'ArrowRight':
+                    pacman.nextDirection = DIRECTIONS.RIGHT;
+                    e.preventDefault();
+                    break;
+            }
+        });
+
+        startBtn.addEventListener('click', startGame);
+        restartBtn.addEventListener('click', startGame);
+        winRestartBtn.addEventListener('click', startGame);
+
+        function resizeCanvas() {
+            const maxWidth = window.innerWidth - 40;
+            const maxHeight = window.innerHeight - 150;
+
+            const scale = Math.min(
+                maxWidth / (MAZE_WIDTH * TILE_SIZE),
+                maxHeight / (MAZE_HEIGHT * TILE_SIZE)
+            );
+
+            if (scale < 1) {
+                canvas.style.width = (MAZE_WIDTH * TILE_SIZE * scale) + 'px';
+                canvas.style.height = (MAZE_HEIGHT * TILE_SIZE * scale) + 'px';
+            } else {
+                canvas.style.width = '';
+                canvas.style.height = '';
+            }
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+    </script>
+</body>
+</html>
