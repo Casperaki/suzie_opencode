@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frogger</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            font-family: 'Courier New', monospace;
+        }
+        #gameContainer {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+        #header {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            padding: 10px 20px;
+            background: #2d2d44;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 18px;
+        }
+        #gameCanvas {
+            border: 4px solid #4a4a6a;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+        #instructions {
+            color: #aaa;
+            font-size: 14px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <div id="header">
+            <span>SCORE: <span id="score">0</span></span>
+            <span>LIVES: <span id="lives">3</span></span>
+            <span>LEVEL: <span id="level">1</span></span>
+        </div>
+        <canvas id="gameCanvas" width="600" height="660"></canvas>
+        <div id="instructions">Arrow Keys to Move | Reach all 5 goals to advance!</div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreEl = document.getElementById('score');
+        const livesEl = document.getElementById('lives');
+        const levelEl = document.getElementById('level');
+
+        // Game constants
+        const GRID = 55;
+        const COLS = 11;
+        const ROWS = 12;
+        const FROG_SPEED = 0.15;
+
+        // Game state
+        let gameState = 'start'; // start, playing, gameover, levelcomplete
+        let score = 0;
+        let lives = 3;
+        let level = 1;
+        let timeBonus = 1000;
+        let lastTime = 0;
+        let goalsReached = 0;
+        let goals = [false, false, false, false, false];
+
+        // Frog object
+        let frog = {
+            x: 5,
+            y: 10,
+            targetX: 5,
+            targetY: 10,
+            animX: 5,
+            animY: 10,
+            direction: 'up',
+            dead: false,
+            onLog: false,
+            logSpeed: 0
+        };
+
+        // Define lanes
+        const roadLanes = [8, 7, 6, 5, 4];
+        const riverLanes = [1, 2, 3];
+        const goalRow = 0;
+        const safeRow1 = 9;
+        const safeRow2 = 10;
+        const startRow = 11;
+
+        // Vehicles on road
+        let vehicles = [];
+
+        // Logs and turtles on river
+        let riverObjects = [];
+
+        // Initialize vehicles
+        function initVehicles() {
+            vehicles = [];
+            const speedMult = 1 + (level - 1) * 0.2;
+            
+            // Lane 8 - cars moving right
+            vehicles.push({ x: 2, y: 8, width: 2, height: 1, speed: 2 * speedMult, dir: 1, type: 'car' });
+            vehicles.push({ x: 6, y: 8, width: 2, height: 1, speed: 2 * speedMult, dir: 1, type: 'car' });
+            
+            // Lane 7 - trucks moving left
+            vehicles.push({ x: 3, y: 7, width: 3, height: 1, speed: 1.5 * speedMult, dir: -1, type: 'truck' });
+            vehicles.push({ x: 8, y: 7, width: 3, height: 1, speed: 1.5 * speedMult, dir: -1, type: 'truck' });
+            
+            // Lane 6 - fast cars moving right
+            vehicles.push({ x: 1, y: 6, width: 2, height: 1, speed: 2.5 * speedMult, dir: 1, type: 'car' });
+            vehicles.push({ x: 5, y: 6, width: 2, height: 1, speed: 2.5 * speedMult, dir: 1, type: 'car' });
+            vehicles.push({ x: 9, y: 6, width: 2, height: 1, speed: 2.5 * speedMult, dir: 1, type: 'car' });
+            
+            // Lane 5 - trucks moving left
+            vehicles.push({ x: 2, y: 5, width: 3, height: 1, speed: 1.8 * speedMult, dir: -1, type: 'truck' });
+            vehicles.push({ x: 7, y: 5, width: 3, height: 1, speed: 1.8 * speedMult, dir: -1, type: 'truck' });
+            
+            // Lane 4 - mixed moving right
+            vehicles.push({ x: 0, y: 4, width: 2, height: 1, speed: 2.2 * speedMult, dir: 1, type: 'car' });
+            vehicles.push({ x: 5, y: 4, width: 3, height: 1, speed: 1.6 * speedMult, dir: 1, type: 'truck' });
+        }
+
+        // Initialize river objects
+        function initRiverObjects() {
+            riverObjects = [];
+            const speedMult = 1 + (level - 1) * 0.15;
+            
+            // Lane 3 - logs moving right
+            riverObjects.push({ x: 1, y: 3, width: 3, height: 1, speed: 1.5 * speedMult, dir: 1, type: 'log' });
+            riverObjects.push({ x: 6, y: 3, width: 3, height: 1, speed: 1.5 * speedMult, dir: 1, type: 'log' });
+            
+            // Lane 2 - turtles moving left
+            riverObjects.push({ x: 2, y: 2, width: 2, height: 1, speed: 1.8 * speedMult, dir: -1, type: 'turtle' });
+            riverObjects.push({ x: 5, y: 2, width: 2, height: 1, speed: 1.8 * speedMult, dir: -1, type: 'turtle' });
+            riverObjects.push({ x: 8, y: 2, width: 2, height: 1, speed: 1.8 * speedMult, dir: -1, type: 'turtle' });
+            
+            // Lane 1 - long logs moving right
+            riverObjects.push({ x: 0, y: 1, width: 4, height: 1, speed: 2 * speedMult, dir: 1, type: 'log' });
+            riverObjects.push({ x: 6, y: 1, width: 4, height: 1, speed: 2 * speedMult, dir: 1, type: 'log' });
+        }
+
+        // Reset frog position
+        function resetFrog() {
+            frog.x = 5;
+            frog.y = 10;
+            frog.targetX = 5;
+            frog.targetY = 10;
+            frog.animX = 5;
+            frog.animY = 10;
+            frog.direction = 'up';
+            frog.dead = false;
+            frog.onLog = false;
+            frog.logSpeed = 0;
+            timeBonus = 1000;
+        }
+
+        // Reset level
+        function resetLevel() {
+            resetFrog();
+            goalsReached = 0;
+            goals = [false, false, false, false, false];
+            initVehicles();
+            initRiverObjects();
+        }
+
+        // Full game reset
+        function resetGame() {
+            score = 0;
+            lives = 3;
+            level = 1;
+            scoreEl.textContent = score;
+            livesEl.textContent = lives;
+            levelEl.textContent = level;
+            resetLevel();
+            gameState = 'playing';
+        }
+
+        // Handle keyboard input
+        document.addEventListener('keydown', (e) => {
+            if (gameState === 'start' || gameState === 'gameover') {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    resetGame();
+                }
+                return;
+            }
+            
+            if (gameState !== 'playing' || frog.dead) return;
+            
+            let newX = frog.targetX;
+            let newY = frog.targetY;
+            
+            switch(e.key) {
+                case 'ArrowUp':
+                    newY--;
+                    frog.direction = 'up';
+                    break;
+                case 'ArrowDown':
+                    newY++;
+                    frog.direction = 'down';
+                    break;
+                case 'ArrowLeft':
+                    newX--;
+                    frog.direction = 'left';
+                    break;
+                case 'ArrowRight':
+                    newX++;
+                    frog.direction = 'right';
+                    break;
+                default:
+                    return;
+            }
+            
+            e.preventDefault();
+            
+            if (newX >= 0 && newX < COLS && newY >= 0 && newY <= startRow) {
+                frog.targetX = newX;
+                frog.targetY = newY;
+            }
+        });
+
+        // Check collision between frog and rectangle
+        function checkFrogRectCollision(frogX, frogY, rectX, rectY, rectW, rectH) {
+            const padding = 0.2;
+            return frogX + padding < rectX + rectW &&
+                   frogX + 1 - padding > rectX &&
+                   frogY + padding < rectY + rectH &&
+                   frogY + 1 - padding > rectY;
+        }
+
+        // Check if frog is on a river object
+        function isOnRiverObject() {
+            for (let obj of riverObjects) {
+                if (obj.y === frog.y && checkFrogRectCollision(frog.animX, frog.animY, obj.x, obj.y, obj.width, obj.height)) {
+                    return obj;
+                }
+            }
+            return null;
+        }
+
+        // Check collision with vehicles
+        function checkVehicleCollision() {
+            for (let v of vehicles) {
+                if (checkFrogRectCollision(frog.animX, frog.animY, v.x, v.y, v.width, v.height)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // Frog dies
+        function frogDies() {
+            if (frog.dead) return;
+            frog.dead = true;
+            lives--;
+            livesEl.textContent = lives;
+            
+            if (lives <= 0) {
+                setTimeout(() => {
+                    gameState = 'gameover';
+                }, 1000);
+            } else {
+                setTimeout(() => {
+                    resetFrog();
+                }, 1000);
+            }
+        }
+
+        // Check if position is a goal slot
+        function isGoalSlot(x) {
+            const goalPositions = [1, 3, 5, 7, 9];
+            return goalPositions.includes(x);
+        }
+
+        function getGoalIndex(x) {
+            const goalPositions = [1, 3, 5, 7, 9];
+            return goalPositions.indexOf(x);
+        }
+
+        // Update game logic
+        function update(deltaTime) {
+            if (gameState !== 'playing') return;
+            
+            // Animate frog movement
+            frog.animX += (frog.targetX - frog.animX) * FROG_SPEED * 60 * deltaTime;
+            frog.animY += (frog.targetY - frog.animY) * FROG_SPEED * 60 * deltaTime;
+            
+            // Update frog actual position when animation is close
+            if (Math.abs(frog.animX - frog.targetX) < 0.01) frog.animX = frog.targetX;
+            if (Math.abs(frog.animY - frog.targetY) < 0.01) frog.animY = frog.targetY;
+            frog.x = Math.round(frog.animX);
+            frog.y = Math.round(frog.animY);
+            
+            // Update vehicles
+            for (let v of vehicles) {
+                v.x += v.speed * v.dir * deltaTime;
+                if (v.dir === 1 && v.x > COLS) {
+                    v.x = -v.width;
+                } else if (v.dir === -1 && v.x + v.width < 0) {
+                    v.x = COLS;
+                }
+            }
+            
+            // Update river objects
+            for (let obj of riverObjects) {
+                obj.x += obj.speed * obj.dir * deltaTime;
+                if (obj.dir === 1 && obj.x > COLS) {
+                    obj.x = -obj.width;
+                } else if (obj.dir === -1 && obj.x + obj.width < 0) {
+                    obj.x = COLS;
+                }
+            }
+            
+            // Check if frog is on road
+            if (roadLanes.includes(frog.y)) {
+                if (checkVehicleCollision()) {
+                    frogDies();
+                    return;
+                }
+            }
+            
+            // Check if frog is on river
+            if (riverLanes.includes(frog.y)) {
+                const riverObj = isOnRiverObject();
+                if (riverObj) {
+                    frog.onLog = true;
+                    frog.logSpeed = riverObj.speed * riverObj.dir;
+                    frog.animX += frog.logSpeed * deltaTime;
+                    frog.targetX += frog.logSpeed * deltaTime;
+                    
+                    // Check bounds
+                    if (frog.animX < 0 || frog.animX >= COLS) {
+                        frogDies();
+                        return;
+                    }
+                } else {
+                    frogDies();
+                    return;
+                }
+            } else {
+                frog.onLog = false;
+                frog.logSpeed = 0;
+            }
+            
+            // Check if frog reached goal row
+            if (frog.y === goalRow && isGoalSlot(frog.x)) {
+                const goalIdx = getGoalIndex(frog.x);
+                if (!goals[goalIdx]) {
+                    goals[goalIdx] = true;
+                    goalsReached++;
+                    score += 100 + Math.floor(timeBonus);
+                    scoreEl.textContent = score;
+                    
+                    if (goalsReached >= 5) {
+                        level++;
+                        levelEl.textContent = level;
+                        score += 500;
+                        scoreEl.textContent = score;
+                        resetLevel();
+                        return;
+                    }
+                }
+                resetFrog();
+                return;
+            }
+            
+            // Score for crossing
+            if (frog.y === safeRow1) {
+                score += 10;
+                scoreEl.textContent = score;
+            }
+            
+            // Decrease time bonus
+            timeBonus -= deltaTime * 10;
+            if (timeBonus < 0) timeBonus = 0;
+        }
+
+        // Draw pixel art frog
+        function drawFrog(x, y) {
+            const px = x * GRID;
+            const py = y * GRID;
+            const s = GRID / 16;
+            
+            ctx.save();
+            ctx.translate(px + GRID/2, py + GRID/2);
+            
+            if (frog.direction === 'left') ctx.rotate(-Math.PI/2);
+            else if (frog.direction === 'right') ctx.rotate(Math.PI/2);
+            else if (frog.direction === 'down') ctx.rotate(Math.PI);
+            
+            // Body
+            ctx.fillStyle = '#4a8f2e';
+            ctx.fillRect(-5*s, -3*s, 10*s, 8*s);
+            
+            // Head
+            ctx.fillStyle = '#5abf3e';
+            ctx.fillRect(-4*s, -7*s, 8*s, 5*s);
+            
+            // Eyes
+            ctx.fillStyle = '#fff';
+            ctx.beginPath();
+            ctx.arc(-3*s, -7*s, 2*s, 0, Math.PI*2);
+            ctx.arc(3*s, -7*s, 2*s, 0, Math.PI*2);
+            ctx.fill();
+            
+            ctx.fillStyle = '#000';
+            ctx.beginPath();
+            ctx.arc(-3*s, -7*s, 1*s, 0, Math.PI*2);
+            ctx.arc(3*s, -7*s, 1*s, 0, Math.PI*2);
+            ctx.fill();
+            
+            // Legs
+            ctx.fillStyle = '#4a8f2e';
+            ctx.fillRect(-7*s, -2*s, 3*s, 4*s);
+            ctx.fillRect(4*s, -2*s, 3*s, 4*s);
+            ctx.fillRect(-7*s, 3*s, 3*s, 3*s);
+            ctx.fillRect(4*s, 3*s, 3*s, 3*s);
+            
+            ctx.restore();
+        }
+
+        // Draw car
+        function drawCar(v) {
+            const px = v.x * GRID;
+            const py = v.y * GRID;
+            const w = v.width * GRID;
+            const h = v.height * GRID;
+            
+            // Body
+            ctx.fillStyle = v.type === 'truck' ? '#8B4513' : '#e74c3c';
+            ctx.fillRect(px + 2, py + 4, w - 4, h - 8);
+            
+            // Top
+            ctx.fillStyle = v.type === 'truck' ? '#A0522D' : '#c0392b';
+            ctx.fillRect(px + 5, py + 2, w - 10, h - 4);
+            
+            // Wheels
+            ctx.fillStyle = '#2d2d2d';
+            ctx.fillRect(px + 4, py + h - 4, 6, 4);
+            ctx.fillRect(px + w - 10, py + h - 4, 6, 4);
+            
+            // Windows
+            ctx.fillStyle = '#87CEEB';
+            if (v.dir === 1) {
+                ctx.fillRect(px + w - 12, py + 4, 8, h - 8);
+            } else {
+                ctx.fillRect(px + 4, py + 4, 8, h - 8);
+            }
+        }
+
+        // Draw truck
+        function drawTruck(v) {
+            const px = v.x * GRID;
+            const py = v.y * GRID;
+            const w = v.width * GRID;
+            const h = v.height * GRID;
+            
+            // Trailer
+            ctx.fillStyle = '#3498db';
+            ctx.fillRect(px + 2, py + 2, w - 15, h - 4);
+            
+            // Cab
+            ctx.fillStyle = '#2980b9';
+            ctx.fillRect(px + w - 13, py + 2, 11, h - 4);
+            
+            // Wheels
+            ctx.fillStyle = '#2d2d2d';
+            ctx.fillRect(px + 6, py + h - 4, 5, 4);
+            ctx.fillRect(px + w - 12, py + h - 4, 5, 4);
+            ctx.fillRect(px + w - 6, py + h - 4, 5, 4);
+            
+            // Stripe
+            ctx.fillStyle = '#ecf0f1';
+            ctx.fillRect(px + 4, py + h/2 - 2, w - 20, 4);
+        }
+
+        // Draw log
+        function drawLog(obj) {
+            const px = obj.x * GRID;
+            const py = obj.y * GRID;
+            const w = obj.width * GRID;
+            const h = obj.height * GRID;
+            
+            // Log body
+            ctx.fillStyle = '#8B4513';
+            ctx.fillRect(px + 2, py + 5, w - 4, h - 10);
+            
+            // Bark texture
+            ctx.fillStyle = '#654321';
+            for (let i = 0; i < obj.width; i++) {
+                ctx.fillRect(px + i * GRID + 5, py + 8, 3, h - 16);
+            }
+            
+            // End caps
+            ctx.fillStyle = '#A0522D';
+            ctx.beginPath();
+            ctx.arc(px + 5, py + h/2, h/2 - 4, 0, Math.PI*2);
+            ctx.arc(px + w - 5, py + h/2, h/2 - 4, 0, Math.PI*2);
+            ctx.fill();
+        }
+
+        // Draw turtle
+        function drawTurtle(obj) {
+            const px = obj.x * GRID;
+            const py = obj.y * GRID;
+            const w = obj.width * GRID;
+            const h = obj.height * GRID;
+            
+            // Shell
+            ctx.fillStyle = '#228B22';
+            ctx.beginPath();
+            ctx.ellipse(px + w/2, py + h/2, w/2 - 4, h/2 - 4, 0, 0, Math.PI*2);
+            ctx.fill();
+            
+            // Shell pattern
+            ctx.fillStyle = '#32CD32';
+            ctx.beginPath();
+            ctx.ellipse(px + w/2, py + h/2, w/4, h/4, 0, 0, Math.PI*2);
+            ctx.fill();
+            
+            // Head
+            ctx.fillStyle = '#228B22';
+            const headX = obj.dir === 1 ? px + w - 5 : px + 5;
+            ctx.beginPath();
+            ctx.arc(headX, py + h/2, 6, 0, Math.PI*2);
+            ctx.fill();
+        }
+
+        // Draw game
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw goal row (grass with water slots)
+            ctx.fillStyle = '#2d5a27';
+            ctx.fillRect(0, 0, canvas.width, GRID);
+            
+            // Goal slots (water)
+            ctx.fillStyle = '#1a4a6e';
+            for (let i = 0; i < COLS; i++) {
+                if (!isGoalSlot(i)) {
+                    ctx.fillRect(i * GRID, 0, GRID, GRID);
+                }
+            }
+            
+            // Draw filled goals
+            for (let i = 0; i < goals.length; i++) {
+                if (goals[i]) {
+                    const gx = [1, 3, 5, 7, 9][i] * GRID;
+                    drawFrog(gx / GRID, 0);
+                }
+            }
+            
+            // Draw river
+            for (let row of riverLanes) {
+                // Water gradient
+                const gradient = ctx.createLinearGradient(0, row * GRID, 0, (row + 1) * GRID);
+                gradient.addColorStop(0, '#1a5a8a');
+                gradient.addColorStop(0.5, '#2171a8');
+                gradient.addColorStop(1, '#1a5a8a');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, row * GRID, canvas.width, GRID);
+                
+                // Water ripples
+                ctx.fillStyle = 'rgba(255,255,255,0.1)';
+                for (let i = 0; i < COLS; i++) {
+                    const offset = (Date.now() / 1000 + i) % 1;
+                    ctx.fillRect(i * GRID + offset * 20, row * GRID + 10, 15, 2);
+                }
+            }
+            
+            // Draw river objects
+            for (let obj of riverObjects) {
+                if (obj.type === 'log') {
+                    drawLog(obj);
+                } else {
+                    drawTurtle(obj);
+                }
+            }
+            
+            // Draw road
+            ctx.fillStyle = '#3d3d3d';
+            for (let row of roadLanes) {
+                ctx.fillRect(0, row * GRID, canvas.width, GRID);
+                
+                // Lane markings
+                ctx.fillStyle = '#fff';
+                ctx.setLineDash([20, 20]);
+                ctx.beginPath();
+                ctx.moveTo(0, row * GRID + GRID/2);
+                ctx.lineTo(canvas.width, row * GRID + GRID/2);
+                ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                ctx.setLineDash([]);
+                ctx.fillStyle = '#3d3d3d';
+            }
+            
+            // Draw vehicles
+            for (let v of vehicles) {
+                if (v.type === 'car') {
+                    drawCar(v);
+                } else {
+                    drawTruck(v);
+                }
+            }
+            
+            // Draw safe zone (grass)
+            ctx.fillStyle = '#3d8b3d';
+            ctx.fillRect(0, safeRow1 * GRID, canvas.width, GRID);
+            
+            // Grass pattern
+            ctx.fillStyle = '#2d6b2d';
+            for (let i = 0; i < COLS; i++) {
+                for (let j = 0; j < 5; j++) {
+                    ctx.fillRect(i * GRID + j * 10, safeRow1 * GRID + j * 10, 5, 8);
+                }
+            }
+            
+            // Draw starting area
+            ctx.fillStyle = '#4a9f4a';
+            ctx.fillRect(0, safeRow2 * GRID, canvas.width, GRID * 2);
+            
+            // Grass pattern for start
+            ctx.fillStyle = '#3a7f3a';
+            for (let i = 0; i < COLS; i++) {
+                for (let j = 0; j < 8; j++) {
+                    ctx.fillRect(i * GRID + j * 6, safeRow2 * GRID + j * 12, 4, 8);
+                }
+            }
+            
+            // Draw frog
+            if (!frog.dead) {
+                drawFrog(frog.animX, frog.animY);
+            }
+            
+            // Draw start screen
+            if (gameState === 'start') {
+                ctx.fillStyle = 'rgba(0,0,0,0.7)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                ctx.fillStyle = '#4a8f2e';
+                ctx.font = 'bold 48px Courier New';
+                ctx.textAlign = 'center';
+                ctx.fillText('FROGGER', canvas.width/2, canvas.height/2 - 60);
+                
+                ctx.fillStyle = '#fff';
+                ctx.font = '24px Courier New';
+                ctx.fillText('Cross the road and river!', canvas.width/2, canvas.height/2);
+                ctx.fillText('Reach all 5 goals to advance!', canvas.width/2, canvas.height/2 + 35);
+                
+                ctx.fillStyle = '#ffd700';
+                ctx.font = '20px Courier New';
+                ctx.fillText('Press ENTER or SPACE to Start', canvas.width/2, canvas.height/2 + 90);
+                
+                ctx.fillStyle = '#aaa';
+                ctx.font = '16px Courier New';
+                ctx.fillText('Arrow Keys to Move', canvas.width/2, canvas.height/2 + 130);
+            }
+            
+            // Draw game over screen
+            if (gameState === 'gameover') {
+                ctx.fillStyle = 'rgba(0,0,0,0.8)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                ctx.fillStyle = '#e74c3c';
+                ctx.font = 'bold 48px Courier New';
+                ctx.textAlign = 'center';
+                ctx.fillText('GAME OVER', canvas.width/2, canvas.height/2 - 30);
+                
+                ctx.fillStyle = '#fff';
+                ctx.font = '28px Courier New';
+                ctx.fillText('Final Score: ' + score, canvas.width/2, canvas.height/2 + 20);
+                
+                ctx.fillStyle = '#ffd700';
+                ctx.font = '20px Courier New';
+                ctx.fillText('Press ENTER to Restart', canvas.width/2, canvas.height/2 + 70);
+            }
+        }
+
+        // Game loop
+        function gameLoop(timestamp) {
+            const deltaTime = (timestamp - lastTime) / 1000;
+            lastTime = timestamp;
+            
+            update(deltaTime);
+            draw();
+            
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Initialize and start
+        initVehicles();
+        initRiverObjects();
+        requestAnimationFrame(gameLoop);
+    </script>
+</body>
+</html>

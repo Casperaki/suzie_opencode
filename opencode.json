@@ -1,0 +1,30 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "provider": {
+    "proxy": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "LLM Proxy",
+      "options": {
+        "baseURL": "http://host.docker.internal:4000/v1",
+        "apiKey": "coding-agent-internal"
+      },
+      "models": {
+        "qwen3.5-plus-2026-02-15": {
+          "name": "qwen3.5-plus-2026-02-15",
+          "limit": {
+            "context": 131072,
+            "output": 16384
+          }
+        }
+      }
+    }
+  },
+  "agent": {
+    "build": {
+      "model": "proxy/qwen3.5-plus-2026-02-15"
+    },
+    "title": {
+      "model": "proxy/qwen3.5-plus-2026-02-15"
+    }
+  }
+}
