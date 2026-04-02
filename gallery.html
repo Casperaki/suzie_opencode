@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gallery | Rush Grove Nursery</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Nunito:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="subpage-styles.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">
+                <span class="logo-icon">🌿</span>
+                <span class="logo-text">Rush Grove Nursery</span>
+            </a>
+            <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <ul class="nav-menu" id="navMenu">
+                <li><a href="index.html" class="nav-link">Home</a></li>
+                <li><a href="index.html#about" class="nav-link">About</a></li>
+                <li><a href="index.html#approach" class="nav-link">Our Approach</a></li>
+                <li><a href="life-at-rush-grove.html" class="nav-link">Life at Rush Grove</a></li>
+                <li><a href="index.html#contact" class="nav-link btn-primary">Enquire Now</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Page Header -->
+    <section class="page-header">
+        <div class="page-header-overlay"></div>
+        <div class="page-header-content">
+            <span class="page-badge">Our Gallery</span>
+            <h1 class="page-title">Capturing Special Moments</h1>
+            <p class="page-subtitle">A window into the daily joy and discovery at Rush Grove</p>
+        </div>
+    </section>
+
+    <!-- Gallery Filter -->
+    <section class="gallery-filter-section">
+        <div class="container">
+            <div class="filter-buttons">
+                <button class="filter-btn active" data-filter="all">All</button>
+                <button class="filter-btn" data-filter="activities">Activities</button>
+                <button class="filter-btn" data-filter="outdoor">Outdoors</button>
+                <button class="filter-btn" data-filter="spaces">Spaces</button>
+                <button class="filter-btn" data-filter="events">Events</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Gallery -->
+    <section class="section">
+        <div class="container">
+            <div class="gallery-main-grid">
+                <div class="gallery-item-wider" data-category="activities">
+                    <div class="gallery-img-placeholder">
+                        <span class="placeholder-icon">🎨</span>
+                        <span class="placeholder-text">Creative Arts</span>
+                    </div>
+                    <div class="gallery-item-overlay">
+                        <span class="overlay-category">Activities</span>
+                        <h4>Creative Expression</h4>
+                    </div>
+                </div>
+                <div class="gallery-item" data-category="outdoor">
+                    <div class="gallery-img-placeholder">
+                        <span class="placeholder-icon">🌳</span>
+                        <span class="placeholder-text">Outdoor Play</span>
+                    </div>
+                    <div class="gallery-item-overlay">
+                        <span class="overlay-category">Outdoors</span>
+                        <h4>Garden Adventures</h4>
+                    </div>
+                </div>
+                <div class="gallery-item" data-category="spaces">
+                    <div class="gallery-img-placeholder">
+                        <span class="placeholder-icon">📚</span>
+                        <span class="placeholder-text">Book Corner</span>
+                    </div>
+                    <div class="gallery-item-overlay">
+                        <span class="overlay-category">Spaces</span>
+                        <h4>Cozy Reading Nook</h4>
+                    </div>
+                </div>
+                <div class="gallery-item" data-category="activities">
+                    <div class="gallery-img-placeholder">
+                        <span class="placeholder-icon">🧩</span>
+                        <span class="placeholder-text">Learning</span>
+                    </div>
+                    <div class="gallery-item-overlay">
+                        <span class="overlay-category">Activities</span>
+                        <h4>Problem Solving</h4>
+                    </div>
+                </div>
+                <div class="gallery-item-tall" data-category="outdoor">
+                    <div class="gallery-img-placeholder">
+                        <span class="placeholder-icon">🦆</span>
+                        <span class="placeholder-text">Pond Visit</span>
+                    </div>
+                    <div class="gallery-item-overlay">
+                        <span class="overlay-category">Outdoors</span>
+                        <h4>Mulgrave Pond</h4>
+                    </div>
+                </div>
+                <div class="gallery-item" data-category="events">
+                    <div class="gallery-img-placeholder">
+                        <span class="placeholder-icon">🎉</span>
+                        <span class="placeholder-text">Celebration</span>
+                    </div>
+                    <div class="gallery-item-overlay">
+                        <span class="overlay-category">Events</span>
+                        <h4>Special Days</h4>
+                    </div>
+                </div>
+                <div class="gallery-item" data-category="spaces">
+                    <div class="gallery-img-placeholder">
+                        <span class="placeholder-icon">🍽️</span>
+                        <span class="placeholder-text">Dining</span>
+                    </div>
+                    <div class="gallery-item-overlay">
+                        <span class="overlay-category">Spaces</span>
+                        <h4>Meal Times</h4>
+                    </div>
+                </div>
+                <div class="gallery-item" data-category="activities">
+                    <div class="gallery-img-placeholder">
+                        <span class="placeholder-icon">🎵</span>
+                        <span class="placeholder-text">Music</span>
+                    </div>
+                    <div class="gallery-item-overlay">
+                        <span class="overlay-category">Activities</span>
+                        <h4>Music & Movement</h4>
+                    </div>
+                </div>
+                <div class="gallery-item-wider" data-category="outdoor">
+                    <div class="gallery-img-placeholder">
+                        <span class="placeholder-icon">🌻</span>
+                        <span class="placeholder-text">Gardening</span>
+                    </div>
+                    <div class="gallery-item-overlay">
+                        <span class="overlay-category">Outdoors</span>
+                        <h4>Growing Together</h4>
+                    </div>
+                </div>
+                <div class="gallery-item" data-category="spaces">
+                    <div class="gallery-img-placeholder">
+                        <span class="placeholder-icon">👶</span>
+                        <span class="placeholder-text">Baby Room</span>
+                    </div>
+                    <div class="gallery-item-overlay">
+                        <span class="overlay-category">Spaces</span>
+                        <h4>Baby Room</h4>
+                    </div>
+                </div>
+                <div class="gallery-item" data-category="spaces">
+                    <div class="gallery-img-placeholder">
+                        <span class="placeholder-icon">🧒</span>
+                        <span class="placeholder-text">Toddler Room</span>
+                    </div>
+                    <div class="gallery-item-overlay">
+                        <span class="overlay-category">Spaces</span>
+                        <h4>Toddler Room</h4>
+                    </div>
+                </div>
+                <div class="gallery-item" data-category="events">
+                    <div class="gallery-img-placeholder">
+                        <span class="placeholder-icon">🎭</span>
+                        <span class="placeholder-text">Performance</span>
+                    </div>
+                    <div class="gallery-item-overlay">
+                        <span class="overlay-category">Events</span>
+                        <h4>Little Performers</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Featured Moments -->
+    <section class="section section-alt">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-badge">Featured</span>
+                <h2 class="section-title">Seasonal Highlights</h2>
+                <p class="section-subtitle">Special moments throughout the year</p>
+            </div>
+
+            <div class="featured-grid">
+                <div class="featured-card">
+                    <div class="featured-image">
+                        <div class="image-placeholder">
+                            <span class="placeholder-icon">🌸</span>
+                        </div>
+                    </div>
+                    <div class="featured-content">
+                        <h4>Spring</h4>
+                        <p>Planting seeds, Easter celebrations, and watching baby animals in our wildlife park</p>
+                    </div>
+                </div>
+                <div class="featured-card">
+                    <div class="featured-image">
+                        <div class="image-placeholder">
+                            <span class="placeholder-icon">☀️</span>
+                        </div>
+                    </div>
+                    <div class="featured-content">
+                        <h4>Summer</h4>
+                        <p>Water play, garden parties, forest school adventures, and long days outdoors</p>
+                    </div>
+                </div>
+                <div class="featured-card">
+                    <div class="featured-image">
+                        <div class="image-placeholder">
+                            <span class="placeholder-icon">🍂</span>
+                        </div>
+                    </div>
+                    <div class="featured-content">
+                        <h4>Autumn</h4>
+                        <p>Harvest festival, leaf collecting, cosy story times, and preparing for winter</p>
+                    </div>
+                </div>
+                <div class="featured-card">
+                    <div class="featured-image">
+                        <div class="image-placeholder">
+                            <span class="placeholder-icon">❄️</span>
+                        </div>
+                    </div>
+                    <div class="featured-content">
+                        <h4>Winter</h4>
+                        <p>Festive celebrations, warm fireside stories, and exploring frost and ice</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Virtual Tour CTA -->
+    <section class="section">
+        <div class="container">
+            <div class="tour-cta">
+                <div class="tour-content">
+                    <h2>Experience Rush Grove in Person</h2>
+                    <p>While our gallery gives you a glimpse, there's nothing quite like visiting our beautiful setting. Book a personal tour to see our facilities, meet our team, and feel the Rush Grove atmosphere.</p>
+                    <a href="index.html#contact" class="btn btn-primary btn-large">Book a Tour</a>
+                </div>
+                <div class="tour-image">
+                    <div class="image-placeholder">
+                        <span class="placeholder-icon">🏡</span>
+                        <span class="placeholder-text">Visit Us</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer" id="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <a href="index.html" class="footer-logo">
+                        <span class="logo-icon">🌿</span>
+                        <span class="logo-text">Rush Grove Nursery</span>
+                    </a>
+                    <p>Exceptional early years care in the stunning surroundings of a Grade II listed Georgian manor.</p>
+                    <div class="social-links">
+                        <a href="#" class="social-link" aria-label="Facebook">📘</a>
+                        <a href="#" class="social-link" aria-label="Instagram">📷</a>
+                        <a href="#" class="social-link" aria-label="Twitter">🐦</a>
+                    </div>
+                </div>
+                <div class="footer-links">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="index.html#about">About Us</a></li>
+                        <li><a href="index.html#approach">Our Approach</a></li>
+                        <li><a href="life-at-rush-grove.html">Life at Rush Grove</a></li>
+                        <li><a href="gallery.html">Gallery</a></li>
+                        <li><a href="index.html#contact">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-links">
+                    <h4>Age Groups</h4>
+                    <ul>
+                        <li><a href="index.html#age-groups">Babies (0-2)</a></li>
+                        <li><a href="index.html#age-groups">Toddlers (2-3)</a></li>
+                        <li><a href="index.html#age-groups">Pre-School (3-5)</a></li>
+                    </ul>
+                </div>
+                <div class="footer-contact">
+                    <h4>Get in Touch</h4>
+                    <p>Rush Grove House<br>Woolwich, London SE18</p>
+                    <p><a href="tel:02081234567">020 8123 4567</a></p>
+                    <p><a href="mailto:hello@rushgrovenursery.co.uk">hello@rushgrovenursery.co.uk</a></p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 Rush Grove Nursery. All rights reserved.</p>
+                <div class="footer-legal">
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Terms of Use</a>
+                    <a href="#">Safeguarding</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+    <script src="subpage-scripts.js"></script>
+</body>
+</html>
