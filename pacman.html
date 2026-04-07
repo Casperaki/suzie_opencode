@@ -117,7 +117,7 @@
         dir: DIRECTIONS.RIGHT,
         nextDir: DIRECTIONS.RIGHT,
         moveTimer: 0,
-        moveDelay: Math.max(4, 7 - level)
+        moveDelay: Math.max(8, 14 - level)
       };
 
       ghosts = GHOST_COLORS.map((color, i) => ({
@@ -129,7 +129,7 @@
         home: true,
         homeTimer: i * 60,
         moveTimer: 0,
-        moveDelay: Math.max(5, 9 - level)
+        moveDelay: Math.max(8, 15 - level)
       }));
 
       powerMode = false;
