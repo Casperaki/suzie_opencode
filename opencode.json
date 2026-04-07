@@ -9,8 +9,8 @@
         "apiKey": "coding-agent-internal"
       },
       "models": {
-        "qwen3.5-plus-2026-02-15": {
-          "name": "qwen3.5-plus-2026-02-15",
+        "qwen3.6-plus": {
+          "name": "qwen3.6-plus",
           "limit": {
             "context": 131072,
             "output": 16384
@@ -21,10 +21,10 @@
   },
   "agent": {
     "build": {
-      "model": "proxy/qwen3.5-plus-2026-02-15"
+      "model": "proxy/qwen3.6-plus"
     },
     "title": {
-      "model": "proxy/qwen3.5-plus-2026-02-15"
+      "model": "proxy/qwen3.6-plus"
     }
   }
 }
