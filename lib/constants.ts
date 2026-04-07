@@ -1,93 +1,149 @@
 import {
-  Zap,
+  Users,
+  MessageCircle,
+  Brain,
   Shield,
-  BarChart3,
-  Globe,
-  Layers,
-  Clock,
+  Bell,
+  Plug,
 } from "lucide-react";
 
-export const SITE_NAME = "Acme";
+export const SITE_NAME = "Team Suzie";
 export const SITE_DESCRIPTION =
-  "The modern platform for building better products, faster.";
-export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://example.com";
+  "Your AI team. One platform. Deploy and manage intelligent AI agents that communicate, collaborate, and take action across your organization.";
+export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://teamsuzie.com";
 
 export const NAV_ITEMS = [
   { label: "Features", href: "/#features" },
-  { label: "Pricing", href: "/#pricing" },
-  { label: "FAQ", href: "/#faq" },
-  { label: "Blog", href: "/blog" },
+  { label: "Agents", href: "/#agents" },
+  { label: "How It Works", href: "/#how-it-works" },
+  { label: "Testimonials", href: "/#testimonials" },
 ] as const;
 
 export const CTA_TEXT = "Get Started";
 export const CTA_HREF = "/#contact";
 
+export const HERO_BADGE = "Powered by OpenClaw";
+export const HERO_TITLE = [
+  "Your AI Team.",
+  "One Platform.",
+];
+export const HERO_SUBTITLE =
+  "Meet Team Suzie — the enterprise platform that orchestrates specialized AI agents like Dave Shucks and Suzie Nice. Connect them to WhatsApp, Slack, Discord, and more. Give them memory, skills, and purpose.";
+export const HERO_CTA_PRIMARY = "Start Building";
+export const HERO_CTA_SECONDARY = "See It In Action";
+
 export const FEATURES = [
   {
-    icon: Zap,
-    title: "Lightning Fast",
+    icon: Users,
+    title: "Multi-Agent Orchestration",
     description:
-      "Built for speed with optimized performance at every layer of the stack.",
+      "Deploy and manage a team of specialized AI agents that work together seamlessly. Each agent brings unique skills to your organization.",
+  },
+  {
+    icon: MessageCircle,
+    title: "Cross-Platform Messaging",
+    description:
+      "Agents connect natively to WhatsApp, Telegram, Matrix, Discord, Slack, Signal, and more — meeting your team where they already work.",
+  },
+  {
+    icon: Brain,
+    title: "Persistent Memory & Skills",
+    description:
+      "Agents maintain long-term memory, daily notes, and specialized capabilities that grow smarter with every interaction.",
   },
   {
     icon: Shield,
-    title: "Secure by Default",
+    title: "Enterprise Security",
     description:
-      "Enterprise-grade security with encryption, SSO, and role-based access controls.",
+      "Role-based access controls, comprehensive audit trails, and secure deployment options that meet the highest compliance standards.",
   },
   {
-    icon: BarChart3,
-    title: "Powerful Analytics",
+    icon: Bell,
+    title: "Proactive Intelligence",
     description:
-      "Real-time insights and dashboards to help you make data-driven decisions.",
+      "Agents monitor your email, calendars, weather, and key signals — reaching out proactively when something needs your attention.",
   },
   {
-    icon: Globe,
-    title: "Global Scale",
+    icon: Plug,
+    title: "Seamless Integration",
     description:
-      "Deploy to edge locations worldwide with automatic scaling and failover.",
+      "Agents read and write files, execute commands, browse the web, and interact with external APIs — becoming true extensions of your team.",
+  },
+] as const;
+
+export const AGENTS = [
+  {
+    name: "Suzie Nice",
+    role: "Operations Coordinator",
+    description: "Manages schedules, coordinates teams, and keeps everything running smoothly across departments.",
+    color: "from-violet-500 to-purple-600",
+    emoji: "✨",
+    skills: ["Calendar Management", "Team Coordination", "Workflow Automation"],
   },
   {
-    icon: Layers,
-    title: "Flexible Integrations",
-    description:
-      "Connect with your favorite tools through our extensive API and webhook support.",
+    name: "Dave Shucks",
+    role: "Research Analyst",
+    description: "Digs deep into data, compiles reports, and surfaces insights that drive strategic decisions.",
+    color: "from-cyan-500 to-blue-600",
+    emoji: "🔍",
+    skills: ["Data Analysis", "Report Generation", "Market Research"],
   },
   {
-    icon: Clock,
-    title: "99.99% Uptime",
-    description:
-      "Reliable infrastructure backed by an SLA you can count on.",
+    name: "Your Agent",
+    role: "Coming Soon",
+    description: "Define the role, give it skills, and watch it become an invaluable member of your team.",
+    color: "from-teal-500 to-emerald-600",
+    emoji: "🚀",
+    skills: ["Custom Skills", "Your Workflows", "Your Data"],
+  },
+] as const;
+
+export const HOW_IT_WORKS = [
+  {
+    step: "01",
+    title: "Deploy Your Agents",
+    description: "Choose from pre-built agents or create custom ones tailored to your organization's needs. Each agent comes with specialized skills and knowledge.",
+  },
+  {
+    step: "02",
+    title: "Connect Your Tools",
+    description: "Link your messaging platforms, calendars, email, APIs, and data sources. Agents integrate seamlessly with your existing stack.",
+  },
+  {
+    step: "03",
+    title: "Watch Them Work",
+    description: "Your agents collaborate, learn, and take action — proactively helping your team while you maintain full oversight and control.",
   },
 ] as const;
 
 export const PLANS = [
   {
     name: "Starter",
-    price: "$0",
+    price: "$49",
     period: "/month",
-    description: "Perfect for side projects and experiments.",
+    description: "For teams getting started with AI agents.",
     features: [
-      "Up to 3 projects",
-      "1 team member",
-      "Community support",
-      "Basic analytics",
+      "Up to 3 AI agents",
+      "5 messaging channels",
+      "Basic memory & skills",
+      "Email support",
+      "Community access",
     ],
-    cta: "Get Started Free",
+    cta: "Start Free Trial",
     highlighted: false,
   },
   {
-    name: "Pro",
-    price: "$29",
+    name: "Professional",
+    price: "$149",
     period: "/month",
-    description: "For growing teams that need more power.",
+    description: "For growing teams that need powerful automation.",
     features: [
-      "Unlimited projects",
-      "Up to 10 team members",
+      "Up to 15 AI agents",
+      "Unlimited messaging channels",
+      "Advanced memory & custom skills",
       "Priority support",
-      "Advanced analytics",
+      "Audit logs & analytics",
       "Custom integrations",
-      "SSO authentication",
     ],
     cta: "Start Free Trial",
     highlighted: true,
@@ -96,91 +152,101 @@ export const PLANS = [
     name: "Enterprise",
     price: "Custom",
     period: "",
-    description: "For organizations with advanced needs.",
+    description: "For organizations with advanced security and scale needs.",
     features: [
-      "Everything in Pro",
-      "Unlimited team members",
-      "Dedicated support",
+      "Unlimited AI agents",
+      "Dedicated infrastructure",
+      "SSO & advanced RBAC",
       "Custom SLA",
-      "On-premise deployment",
-      "Audit logs",
+      "On-premise deployment option",
+      "Dedicated account team",
+      "24/7 phone support",
     ],
     cta: "Contact Sales",
     highlighted: false,
   },
 ] as const;
 
-export const FAQ_ITEMS = [
-  {
-    question: "How do I get started?",
-    answer:
-      "Sign up for a free account and you can start building immediately. No credit card required.",
-  },
-  {
-    question: "Can I change plans later?",
-    answer:
-      "Yes, you can upgrade or downgrade your plan at any time. Changes take effect at the start of your next billing cycle.",
-  },
-  {
-    question: "Is there a free trial?",
-    answer:
-      "Yes, all paid plans come with a 14-day free trial. You can cancel anytime during the trial period.",
-  },
-  {
-    question: "What kind of support do you offer?",
-    answer:
-      "We offer community support for free plans, priority email support for Pro plans, and dedicated account management for Enterprise customers.",
-  },
-  {
-    question: "Do you offer refunds?",
-    answer:
-      "Yes, we offer a 30-day money-back guarantee on all paid plans. No questions asked.",
-  },
-] as const;
-
 export const TESTIMONIALS = [
   {
     quote:
-      "This platform transformed the way our team builds products. We shipped 3x faster in the first month.",
-    author: "Sarah Chen",
+      "Team Suzie transformed how we operate. Our agents handle 60% of routine coordination tasks, freeing our team to focus on strategy.",
+    author: "Rachel Torres",
+    role: "VP of Operations",
+    company: "Meridian Health",
+  },
+  {
+    quote:
+      "Deploying Dave Shucks as our research analyst was a game-changer. We get comprehensive market reports in minutes instead of days.",
+    author: "James Liu",
+    role: "Head of Strategy",
+    company: "NovaTech Ventures",
+  },
+  {
+    quote:
+      "The cross-platform messaging is incredible. Our agents meet our global team on WhatsApp, Slack, and Teams — wherever people work.",
+    author: "Amara Okafor",
     role: "CTO",
-    company: "TechFlow",
+    company: "Atlas Financial",
+  },
+] as const;
+
+export const FAQ_ITEMS = [
+  {
+    question: "What is OpenClaw?",
+    answer:
+      "OpenClaw is the open-source runtime that powers Team Suzie. It provides the core agent infrastructure, memory systems, and tool execution capabilities that make intelligent AI assistants possible.",
   },
   {
-    quote:
-      "The best developer experience I've ever had. The integrations just work.",
-    author: "Marcus Johnson",
-    role: "Lead Engineer",
-    company: "DataSync",
+    question: "How do AI agents differ from chatbots?",
+    answer:
+      "Unlike simple chatbots that only respond to prompts, Team Suzie agents have persistent memory, specialized skills, proactive capabilities, and can take actions across your tools and platforms autonomously.",
   },
   {
-    quote:
-      "We migrated our entire infrastructure in a weekend. The documentation is outstanding.",
-    author: "Elena Rodriguez",
-    role: "VP Engineering",
-    company: "CloudPeak",
+    question: "Can I create custom agents with unique skills?",
+    answer:
+      "Absolutely. You can define custom agents with specific roles, knowledge bases, and skills. Agents can be trained on your internal data and connected to your proprietary tools and APIs.",
+  },
+  {
+    question: "How secure is the platform?",
+    answer:
+      "Enterprise-grade security is foundational. We offer role-based access controls, comprehensive audit trails, data encryption at rest and in transit, SOC 2 Type II compliance, and optional on-premise deployment.",
+  },
+  {
+    question: "Which messaging platforms are supported?",
+    answer:
+      "We support WhatsApp, Telegram, Matrix, Discord, Slack, Signal, Microsoft Teams, and more. We're constantly adding new integrations based on customer requests.",
   },
 ] as const;
 
 export const SOCIAL_LINKS = [
-  { platform: "Twitter", url: "https://twitter.com", label: "Twitter" },
-  { platform: "GitHub", url: "https://github.com", label: "GitHub" },
-  { platform: "LinkedIn", url: "https://linkedin.com", label: "LinkedIn" },
+  { platform: "Twitter", url: "https://twitter.com/teamsuzie", label: "Twitter" },
+  { platform: "GitHub", url: "https://github.com/scissero", label: "GitHub" },
+  { platform: "LinkedIn", url: "https://linkedin.com/company/scissero", label: "LinkedIn" },
 ] as const;
 
 export const FOOTER_LINKS = {
   product: [
     { label: "Features", href: "/#features" },
+    { label: "Agents", href: "/#agents" },
     { label: "Pricing", href: "/#pricing" },
-    { label: "Blog", href: "/blog" },
+    { label: "Documentation", href: "/docs" },
   ],
   company: [
-    { label: "About", href: "/#" },
-    { label: "Careers", href: "/#" },
+    { label: "About Scissero", href: "https://scissero.com" },
+    { label: "OpenClaw", href: "https://openclaw.ai" },
+    { label: "Careers", href: "/careers" },
     { label: "Contact", href: "/#contact" },
   ],
+  resources: [
+    { label: "Blog", href: "/blog" },
+    { label: "GitHub", href: "https://github.com/scissero" },
+    { label: "Community", href: "/community" },
+    { label: "Status", href: "/status" },
+  ],
   legal: [
-    { label: "Privacy", href: "/#" },
-    { label: "Terms", href: "/#" },
+    { label: "Privacy Policy", href: "/privacy" },
+    { label: "Terms of Service", href: "/terms" },
+    { label: "Security", href: "/security" },
   ],
 } as const;

@@ -18,13 +18,13 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: SITE_NAME,
+    default: `${SITE_NAME} — Enterprise AI Agent Platform`,
     template: `%s | ${SITE_NAME}`,
   },
   description: SITE_DESCRIPTION,
   metadataBase: new URL(SITE_URL),
   openGraph: {
-    title: SITE_NAME,
+    title: `${SITE_NAME} — Enterprise AI Agent Platform`,
     description: SITE_DESCRIPTION,
     url: SITE_URL,
     siteName: SITE_NAME,

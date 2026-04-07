@@ -10,14 +10,14 @@ import { AnimateOnScroll } from "@/components/shared/animate-on-scroll";
 
 export function FAQ() {
   return (
-    <SectionWrapper id="faq">
+    <SectionWrapper id="faq" className="bg-muted/30">
       <AnimateOnScroll direction="up">
         <div className="text-center">
-          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            Frequently asked questions
+          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">
+            Frequently Asked <span className="gradient-text">Questions</span>
           </h2>
           <p className="mt-4 text-lg text-muted-foreground">
-            Everything you need to know.
+            Everything you need to know about Team Suzie.
           </p>
         </div>
       </AnimateOnScroll>
@@ -26,8 +26,8 @@ export function FAQ() {
           <Accordion className="w-full">
             {FAQ_ITEMS.map((item, i) => (
               <AccordionItem key={i} value={`item-${i}`}>
-                <AccordionTrigger>{item.question}</AccordionTrigger>
-                <AccordionContent>{item.answer}</AccordionContent>
+                <AccordionTrigger className="text-left">{item.question}</AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">{item.answer}</AccordionContent>
               </AccordionItem>
             ))}
           </Accordion>

@@ -1,24 +1,43 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
-import { Menu, X } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 import { NAV_ITEMS, SITE_NAME, CTA_TEXT, CTA_HREF } from "@/lib/constants";
 
 export function Navbar() {
   const [open, setOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   return (
-    <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header
+      className={`sticky top-0 z-50 transition-all duration-300 ${
+        scrolled
+          ? "border-b bg-background/80 shadow-sm backdrop-blur-xl"
+          : "border-b bg-background/60 backdrop-blur-md"
+      }`}
+    >
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
-        <Link href="/" className="text-xl font-bold">
-          {SITE_NAME}
+        {/* Logo */}
+        <Link href="/" className="flex items-center gap-2">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-brand to-brand/80">
+            <span className="text-sm font-bold text-white">S</span>
+          </div>
+          <span className="text-lg font-bold tracking-tight">{SITE_NAME}</span>
         </Link>
 
         {/* Desktop nav */}
-        <nav className="hidden items-center gap-6 md:flex">
+        <nav className="hidden items-center gap-8 md:flex">
           {NAV_ITEMS.map((item) => (
             <Link
               key={item.href}
@@ -28,7 +47,10 @@ export function Navbar() {
               {item.label}
             </Link>
           ))}
-          <Button render={<Link href={CTA_HREF} />}>
+          <Button
+            render={<Link href={CTA_HREF} />}
+            className="bg-brand text-brand-foreground hover:bg-brand/90"
+          >
             {CTA_TEXT}
           </Button>
         </nav>
@@ -55,7 +77,7 @@ export function Navbar() {
               <Button
                 render={<Link href={CTA_HREF} />}
                 onClick={() => setOpen(false)}
-                className="mt-4"
+                className="mt-4 bg-brand text-brand-foreground hover:bg-brand/90"
               >
                 {CTA_TEXT}
               </Button>

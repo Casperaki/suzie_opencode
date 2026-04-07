@@ -19,25 +19,25 @@ export function Pricing() {
     <SectionWrapper id="pricing">
       <AnimateOnScroll direction="up">
         <div className="text-center">
-          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            Simple, transparent pricing
+          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">
+            Plans That <span className="gradient-text">Scale With You</span>
           </h2>
           <p className="mt-4 text-lg text-muted-foreground">
-            Choose the plan that works for you.
+            From startup teams to enterprise organizations.
           </p>
         </div>
       </AnimateOnScroll>
-      <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {PLANS.map((plan, index) => (
           <AnimateOnScroll key={plan.name} direction="up" delay={index * 100}>
             <Card
               className={cn(
-                "relative flex flex-col h-full",
-                plan.highlighted && "border-primary shadow-lg"
+                "relative flex flex-col h-full border bg-card/50",
+                plan.highlighted && "border-brand shadow-xl shadow-brand/10"
               )}
             >
               {plan.highlighted && (
-                <Badge className="absolute -top-3 left-1/2 -translate-x-1/2">
+                <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-brand text-white hover:bg-brand">
                   Most Popular
                 </Badge>
               )}
@@ -53,7 +53,7 @@ export function Pricing() {
                 <ul className="space-y-3">
                   {plan.features.map((feature) => (
                     <li key={feature} className="flex items-center gap-2 text-sm">
-                      <Check className="h-4 w-4 text-primary" />
+                      <Check className="h-4 w-4 text-brand" />
                       {feature}
                     </li>
                   ))}
@@ -62,7 +62,10 @@ export function Pricing() {
               <CardFooter>
                 <Button
                   variant={plan.highlighted ? "default" : "outline"}
-                  className="w-full"
+                  className={cn(
+                    "w-full",
+                    plan.highlighted && "bg-brand text-white hover:bg-brand/90"
+                  )}
                 >
                   {plan.cta}
                 </Button>
