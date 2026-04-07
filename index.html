@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Prime Finder</title>
+    <title>Prime Finder & Number Sums</title>
 <style>
     *, *::before, *::after {
         margin: 0;
@@ -73,8 +73,7 @@
         margin-bottom: 8px;
     }
 
-    input[type="text"],
-    input[type="number"] {
+    .input-group input {
         width: 100%;
         font-size: 16px;
         padding: 11px 16px;
@@ -86,14 +85,14 @@
         background: #fafbfc;
     }
 
-    input:focus {
+    .input-group input:focus {
         border-color: var(--primary);
         box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
         background: #fff;
     }
 
-    button {
-        margin-top: 20px;
+    .input-group button {
+        margin-top: 14px;
         width: 100%;
         padding: 13px 24px;
         background: var(--primary);
@@ -106,13 +105,51 @@
         transition: background var(--transition), transform 80ms ease;
     }
 
-    button:hover {
+    .input-group button:hover {
         background: var(--primary-hover);
     }
 
-    button:active {
+    .input-group button:active {
         background: var(--primary-active);
         transform: scale(0.985);
+    }
+
+    .stats {
+        margin-top: 24px;
+        display: none;
+    }
+
+    .stats.visible {
+        display: block;
+        animation: fadeInUp 350ms ease both;
+    }
+
+    .stat-box {
+        background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+        border-radius: 12px;
+        padding: 20px 24px;
+        color: #fff;
+    }
+
+    .stat-label {
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: rgba(255, 255, 255, 0.6);
+        margin-bottom: 4px;
+    }
+
+    .stat-value {
+        font-size: 36px;
+        font-weight: 700;
+        letter-spacing: -0.6px;
+        font-family: SFMono-Regular, Menlo, Consolas, monospace;
+    }
+
+    .stat-detail {
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.45);
+        margin-top: 4px;
     }
 
     .error {
@@ -204,19 +241,28 @@
 </head>
 <body>
 <div class="card">
-    <h1>Prime Finder</h1>
-    <p class="subtitle">Discover every prime number up to your chosen limit</p>
+    <h1>Number Cruncher</h1>
+    <p class="subtitle">Explore primes and cumulative sums up to your chosen limit</p>
 
-    <label for="numberInput">Enter a positive integer</label>
-    <input type="text" id="numberInput" placeholder="e.g. 50" inputmode="numeric" autocomplete="off" />
+    <div class="input-group">
+        <label for="numberInput">Enter a positive integer</label>
+        <input type="text" id="numberInput" placeholder="e.g. 50" inputmode="numeric" autocomplete="off" />
+        <button id="findBtn">Analyze Number</button>
+    </div>
 
-    <button id="findBtn">Find Primes</button>
+    <div class="error" id="errorMsg" style="margin-top: 12px;"></div>
 
-    <div class="error" id="errorMsg"></div>
+    <div class="stats" id="stats">
+        <div class="stat-box">
+            <div class="stat-label">Sum of all numbers</div>
+            <div class="stat-value" id="sumValue">—</div>
+            <div class="stat-detail">0 + 1 + 2 + … + n</div>
+        </div>
+    </div>
 
     <div class="results" id="results">
         <div class="results-header">
-            Found <span id="primeCount">0</span> prime<span id="pluralS">s</span>
+            Primes found: <span id="primeCount">0</span>
         </div>
         <div class="primes-grid" id="primesGrid"></div>
     </div>
@@ -246,13 +292,15 @@
     const errorMsg = document.getElementById("errorMsg");
     const results = document.getElementById("results");
     const primeCount = document.getElementById("primeCount");
-    const pluralS = document.getElementById("pluralS");
     const primesGrid = document.getElementById("primesGrid");
+    const stats = document.getElementById("stats");
+    const sumValue = document.getElementById("sumValue");
 
     function showError(msg) {
         errorMsg.textContent = msg;
         errorMsg.classList.add("visible");
         results.classList.remove("visible");
+        stats.classList.remove("visible");
         errorMsg.style.animation = "none";
         errorMsg.offsetHeight; // trigger reflow
         errorMsg.style.animation = "";
@@ -262,7 +310,7 @@
         errorMsg.classList.remove("visible");
     }
 
-    function findPrimes() {
+    function analyzeNumber() {
         hideError();
         const raw = input.value.trim();
 
@@ -283,23 +331,28 @@
             return;
         }
 
-        if (num > 1000000) {
-            showError("Limit too high — please enter a number up to 1 000 000.");
+        if (num > 100000) {
+            showError("Limit too high — please enter a number up to 100 000 to keep the page snappy.");
             return;
         }
 
+        /* Sum of 0..n using Gauss formula */
+        const total = num * (num + 1) / 2;
+        sumValue.textContent = total.toLocaleString();
+        stats.classList.add("visible");
+
+        /* Primes */
         const primes = primesUpTo(num);
-        primeCount.textContent = primes.length;
-        pluralS.textContent = primes.length === 1 ? "" : "s";
+        primeCount.textContent = primes.toLocaleString();
 
         primesGrid.innerHTML = primes.map((p) => `<span class="chip">${p}</span>`).join("");
         results.classList.add("visible");
     }
 
-    btn.addEventListener("click", findPrimes);
+    btn.addEventListener("click", analyzeNumber);
 
     input.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") findPrimes();
+        if (e.key === "Enter") analyzeNumber();
     });
 </script>
 </body>
