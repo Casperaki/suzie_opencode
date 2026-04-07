@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prime Finder</title>
+<style>
+    *, *::before, *::after {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    :root {
+        --bg: #f4f6f9;
+        --card-bg: #ffffff;
+        --primary: #3b82f6;
+        --primary-hover: #2563eb;
+        --primary-active: #1d4ed8;
+        --text: #1e293b;
+        --text-muted: #64748b;
+        --border: #e2e8f0;
+        --error: #ef4444;
+        --error-bg: #fef2f2;
+        --chip-bg: #eff6ff;
+        --chip-border: #bfdbfe;
+        --chip-text: #1e40af;
+        --shadow: 0 4px 12px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
+        --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.08), 0 4px 10px rgba(0, 0, 0, 0.04);
+        --radius: 14px;
+        --transition: 180ms cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        line-height: 1.6;
+    }
+
+    .card {
+        background: var(--card-bg);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-lg);
+        width: 100%;
+        max-width: 560px;
+        padding: 40px 40px 36px;
+        transition: box-shadow var(--transition);
+    }
+
+    h1 {
+        font-size: 26px;
+        font-weight: 700;
+        letter-spacing: -0.4px;
+        margin-bottom: 2px;
+    }
+
+    .subtitle {
+        color: var(--text-muted);
+        font-size: 14px;
+        margin-bottom: 32px;
+    }
+
+    label {
+        display: block;
+        font-size: 14px;
+        font-weight: 600;
+        margin-bottom: 8px;
+    }
+
+    input[type="text"],
+    input[type="number"] {
+        width: 100%;
+        font-size: 16px;
+        padding: 11px 16px;
+        border: 1.5px solid var(--border);
+        border-radius: 10px;
+        outline: none;
+        transition: border-color var(--transition), box-shadow var(--transition);
+        font-family: SFMono-Regular, Menlo, Consolas, monospace;
+        background: #fafbfc;
+    }
+
+    input:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        background: #fff;
+    }
+
+    button {
+        margin-top: 20px;
+        width: 100%;
+        padding: 13px 24px;
+        background: var(--primary);
+        color: #fff;
+        border: none;
+        border-radius: 10px;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background var(--transition), transform 80ms ease;
+    }
+
+    button:hover {
+        background: var(--primary-hover);
+    }
+
+    button:active {
+        background: var(--primary-active);
+        transform: scale(0.985);
+    }
+
+    .error {
+        margin-top: 14px;
+        padding: 12px 16px;
+        background: var(--error-bg);
+        color: var(--error);
+        border-radius: 10px;
+        font-size: 13px;
+        font-weight: 500;
+        border: 1px solid #fecaca;
+        animation: shake 300ms ease;
+        display: none;
+    }
+
+    .error.visible {
+        display: block;
+    }
+
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-4px); }
+        50% { transform: translateX(4px); }
+        75% { transform: translateX(-4px); }
+    }
+
+    .results {
+        margin-top: 32px;
+        display: none;
+    }
+
+    .results.visible {
+        display: block;
+    }
+
+    .results-header {
+        font-size: 14px;
+        font-weight: 600;
+        margin-bottom: 14px;
+        color: var(--text-muted);
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+    }
+
+    .results-header span {
+        font-weight: 700;
+        color: var(--text);
+        font-size: 20px;
+    }
+
+    .primes-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        animation: fadeInUp 350ms ease both;
+    }
+
+    .chip {
+        display: inline-block;
+        padding: 7px 14px;
+        background: var(--chip-bg);
+        border: 1px solid var(--chip-border);
+        border-radius: 999px;
+        font-size: 14px;
+        font-weight: 500;
+        font-family: "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+        color: var(--chip-text);
+        transition: background var(--transition), transform 80ms ease;
+    }
+
+    .chip:hover {
+        background: #dbeafe;
+        transform: translateY(-1px);
+    }
+
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(12px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after {
+            animation-duration: 0.01ms !important;
+            transition-duration: 0.01ms !important;
+        }
+    }
+</style>
+</head>
+<body>
+<div class="card">
+    <h1>Prime Finder</h1>
+    <p class="subtitle">Discover every prime number up to your chosen limit</p>
+
+    <label for="numberInput">Enter a positive integer</label>
+    <input type="text" id="numberInput" placeholder="e.g. 50" inputmode="numeric" autocomplete="off" />
+
+    <button id="findBtn">Find Primes</button>
+
+    <div class="error" id="errorMsg"></div>
+
+    <div class="results" id="results">
+        <div class="results-header">
+            Found <span id="primeCount">0</span> prime<span id="pluralS">s</span>
+        </div>
+        <div class="primes-grid" id="primesGrid"></div>
+    </div>
+</div>
+
+<script>
+    function isPrime(n) {
+        if (n < 2) return false;
+        if (n === 2) return true;
+        if (n % 2 === 0) return false;
+        for (let i = 3; i <= Math.sqrt(n); i += 2) {
+            if (n % i === 0) return false;
+        }
+        return true;
+    }
+
+    function primesUpTo(limit) {
+        const primes = [];
+        for (let i = 0; i <= limit; i++) {
+            if (isPrime(i)) primes.push(i);
+        }
+        return primes;
+    }
+
+    const input = document.getElementById("numberInput");
+    const btn = document.getElementById("findBtn");
+    const errorMsg = document.getElementById("errorMsg");
+    const results = document.getElementById("results");
+    const primeCount = document.getElementById("primeCount");
+    const pluralS = document.getElementById("pluralS");
+    const primesGrid = document.getElementById("primesGrid");
+
+    function showError(msg) {
+        errorMsg.textContent = msg;
+        errorMsg.classList.add("visible");
+        results.classList.remove("visible");
+        errorMsg.style.animation = "none";
+        errorMsg.offsetHeight; // trigger reflow
+        errorMsg.style.animation = "";
+    }
+
+    function hideError() {
+        errorMsg.classList.remove("visible");
+    }
+
+    function findPrimes() {
+        hideError();
+        const raw = input.value.trim();
+
+        if (raw === "") {
+            showError("Please enter a number.");
+            return;
+        }
+
+        if (!/^[0-9]+$/.test(raw)) {
+            showError("Enter a valid integer — no decimals or letters.");
+            return;
+        }
+
+        const num = parseInt(raw, 10);
+
+        if (num <= 0) {
+            showError("Please enter a positive integer greater than zero.");
+            return;
+        }
+
+        if (num > 1000000) {
+            showError("Limit too high — please enter a number up to 1 000 000.");
+            return;
+        }
+
+        const primes = primesUpTo(num);
+        primeCount.textContent = primes.length;
+        pluralS.textContent = primes.length === 1 ? "" : "s";
+
+        primesGrid.innerHTML = primes.map((p) => `<span class="chip">${p}</span>`).join("");
+        results.classList.add("visible");
+    }
+
+    btn.addEventListener("click", findPrimes);
+
+    input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") findPrimes();
+    });
+</script>
+</body>
+</html>
